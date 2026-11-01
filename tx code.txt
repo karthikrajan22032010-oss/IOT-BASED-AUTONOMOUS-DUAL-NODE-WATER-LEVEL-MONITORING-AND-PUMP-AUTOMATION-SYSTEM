@@ -1,0 +1,38 @@
+#include <RCSwitch.h>
+
+RCSwitch mySwitch = RCSwitch();
+const int txPin = 8; // Updated DATA pin for Super Mini
+
+void setup() {
+  Serial.begin(115200);
+  delay(2000);
+
+  // Multi-threshold conductive wire probes
+  pinMode(1, INPUT_PULLUP);
+  pinMode(2, INPUT_PULLUP);
+  pinMode(3, INPUT_PULLUP);
+  pinMode(4, INPUT_PULLUP);
+
+  // Enable RF Transmitter
+  mySwitch.enableTransmit(txPin);
+  Serial.println("RF Transmitter Ready on ESP32 Super Mini");
+}
+
+void loop() {
+  int water_level = 0;
+  
+  if (digitalRead(4) == LOW) water_level = 100;
+  else if (digitalRead(3) == LOW) water_level = 75;
+  else if (digitalRead(2) == LOW) water_level = 50;
+  else if (digitalRead(1) == LOW) water_level = 25;
+  else water_level = 0;
+
+  Serial.print("Sending Water Level via RF: ");
+  Serial.print(water_level);
+  Serial.println("%");
+
+  // Send the water level as a 24-bit integer
+  mySwitch.send(water_level, 24);
+  
+  delay(2000);
+}
