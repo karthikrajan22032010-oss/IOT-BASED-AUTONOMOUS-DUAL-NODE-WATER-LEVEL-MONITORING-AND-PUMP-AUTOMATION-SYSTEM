@@ -1,0 +1,42 @@
+function doGet(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    var dateStr = e.parameter.date;
+    var timeStr = e.parameter.time;
+    var onTimeStr = e.parameter.ontime;
+    var offTimeStr = e.parameter.offtime;
+    var state = e.parameter.state;
+    
+    var lastRow = sheet.getLastRow();
+    
+    // If the motor is turning OFF, check if the last row is still open ("-")
+    if (lastRow > 1 && offTimeStr !== "-") {
+      var lastOffTime = sheet.getRange(lastRow, 5).getValue(); 
+      
+      if (lastOffTime == "-" || lastOffTime == "") {
+        // Update the existing row instead of making a new one
+        sheet.getRange(lastRow, 3).setValue(state);   
+        // Add an apostrophe to force plain text for the OFF time
+        sheet.getRange(lastRow, 5).setValue("'" + offTimeStr); 
+        return ContentService.createTextOutput("Updated existing row");
+      }
+    }
+    
+    // If the motor is turning ON, create a brand new row.
+    // We add "'" before the time variables to forcefully stop Google Sheets from hiding the AM/PM.
+    var rowData = [
+      "'" + dateStr, 
+      "'" + timeStr, 
+      state, 
+      "'" + onTimeStr, 
+      "'" + offTimeStr
+    ];
+    
+    sheet.appendRow(rowData);
+    return ContentService.createTextOutput("Added new row");
+    
+  } catch(error) {
+    return ContentService.createTextOutput("Error: " + error.toString());
+  }
+}
